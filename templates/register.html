@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — AY Foods</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0e0c; --surface: #1a1916; --card: #222119;
+      --border: #2e2c28; --gold: #e8a045; --gold2: #f5c97a;
+      --red: #e84545; --text: #f0ede8; --muted: #8a8680;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .auth-box {
+      max-width: 460px; width: 100%;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.5rem;
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    }
+    .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: .25rem; }
+    .brand span { color: var(--text); }
+    h3 { font-size: 1.1rem; color: var(--muted); margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; margin-bottom: .4rem; font-size: .85rem; color: var(--muted); font-weight: 500; }
+    .form-control {
+      width: 100%; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: .75rem 1rem; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: .95rem;
+      transition: border-color .2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232,160,69,.15); }
+    .btn-primary {
+      width: 100%; padding: .85rem;
+      background: var(--gold); color: #000;
+      border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all .2s; margin-top: .5rem;
+    }
+    .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+    .error-msg {
+      background: rgba(232,69,69,.1); color: var(--red);
+      border: 1px solid rgba(232,69,69,.3);
+      border-radius: 10px; padding: .75rem 1rem;
+      margin-bottom: 1rem; font-size: .9rem;
+    }
+    .auth-switch { text-align: center; margin-top: 1.5rem; font-size: .9rem; color: var(--muted); }
+    .auth-switch a { color: var(--gold); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="auth-box">
+    <div class="brand">AY <span>Foods</span></div>
+    <h3>Create your account</h3>
+    {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+    <form method="POST">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input class="form-control" type="text" name="name" placeholder="Your full name" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input class="form-control" type="text" name="username" placeholder="Choose a username" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" type="password" name="password" placeholder="Choose a password" required>
+      </div>
+      <button class="btn-primary" type="submit">Create Account →</button>
+    </form>
+    <div class="auth-switch">Already have an account? <a href="/login">Sign in</a></div>
+  </div>
+</body>
+</html>

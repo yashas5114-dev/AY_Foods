@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — AY Foods</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0e0c; --surface: #1a1916; --card: #222119;
+      --border: #2e2c28; --gold: #e8a045; --gold2: #f5c97a;
+      --red: #e84545; --green: #3ecf8e; --text: #f0ede8; --muted: #8a8680;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .auth-wrap {
+      display: grid; grid-template-columns: 1fr 1fr;
+      max-width: 920px; width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px; overflow: hidden;
+      box-shadow: 0 32px 100px rgba(0,0,0,.7);
+    }
+    .auth-hero {
+      background: linear-gradient(145deg, #1a1510 0%, #2a1f0e 60%, #1a1208 100%);
+      padding: 3rem 2.5rem;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .auth-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 50%, rgba(232,160,69,.13) 0%, transparent 70%);
+    }
+    .hero-emoji { font-size: 4rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; position: relative; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+    .auth-hero h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.1rem; font-weight: 900; color: var(--gold);
+      line-height: 1.2; margin-bottom: 1rem; position: relative;
+    }
+    .auth-hero p { color: var(--muted); font-size: .93rem; line-height: 1.7; position: relative; }
+    .food-tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1.4rem; position: relative; }
+    .food-tag {
+      background: rgba(232,160,69,.09); color: var(--gold);
+      padding: .28rem .75rem; border-radius: 20px;
+      font-size: .78rem; font-weight: 500;
+      border: 1px solid rgba(232,160,69,.18);
+    }
+    .auth-form { padding: 2.75rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 900; color: var(--gold); margin-bottom: .2rem; }
+    .brand span { color: var(--text); }
+    .auth-subtitle { color: var(--muted); font-size: .95rem; margin-bottom: 1.75rem; }
+    .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.75rem; }
+    .role-btn {
+      border: 2px solid var(--border);
+      border-radius: 14px; padding: 1rem .75rem;
+      background: var(--surface);
+      cursor: pointer; transition: all .22s;
+      text-align: center;
+    }
+    .role-btn:hover { border-color: var(--gold); background: rgba(232,160,69,.06); }
+    .role-btn.selected { border-color: var(--gold); background: rgba(232,160,69,.1); }
+    .role-btn.selected.admin-btn { border-color: #5b9cf6; background: rgba(62,124,207,.1); }
+    .role-icon { font-size: 2rem; margin-bottom: .45rem; }
+    .role-label { font-weight: 700; font-size: .95rem; margin-bottom: .15rem; }
+    .role-desc  { font-size: .75rem; color: var(--muted); }
+    .role-btn.selected .role-label { color: var(--gold); }
+    .role-btn.selected.admin-btn .role-label { color: #5b9cf6; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label { display: block; margin-bottom: .35rem; font-size: .83rem; color: var(--muted); font-weight: 500; }
+    .form-control {
+      width: 100%; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: .72rem 1rem; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: .95rem;
+      transition: border-color .2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232,160,69,.13); }
+    .btn-submit {
+      width: 100%; padding: .85rem;
+      background: var(--gold); color: #000;
+      border: none; border-radius: 11px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all .2s; margin-top: .4rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn-submit:hover { background: var(--gold2); transform: translateY(-1px); }
+    .btn-submit.admin-mode { background: #5b9cf6; color: #000; }
+    .btn-submit.admin-mode:hover { background: #7ab3f8; }
+    .error-msg {
+      background: rgba(232,69,69,.1); color: var(--red);
+      border: 1px solid rgba(232,69,69,.28);
+      border-radius: 10px; padding: .7rem 1rem;
+      margin-bottom: 1.1rem; font-size: .88rem;
+    }
+    .auth-switch { text-align: center; margin-top: 1.4rem; font-size: .88rem; color: var(--muted); }
+    .auth-switch a { color: var(--gold); text-decoration: none; font-weight: 600; }
+    .demo-box {
+      background: rgba(232,160,69,.05);
+      border: 1px solid rgba(232,160,69,.13);
+      border-radius: 10px; padding: .9rem 1rem;
+      margin-top: 1.4rem; font-size: .78rem; color: var(--muted);
+    }
+    .demo-box strong { color: var(--gold); display: block; margin-bottom: .35rem; font-size: .8rem; }
+    .demo-box code { color: var(--text); font-family: monospace; }
+    @media (max-width: 660px) {
+      .auth-wrap { grid-template-columns: 1fr; }
+      .auth-hero { display: none; }
+      .auth-form { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-hero">
+    <div class="hero-emoji">🍽️</div>
+    <h2>Delicious food, delivered fast.</h2>
+    <p>Order from our curated menu of handcrafted dishes made with the finest ingredients.</p>
+    <div class="food-tags">
+      <span class="food-tag">🍕 Pizza</span>
+      <span class="food-tag">🍔 Burgers</span>
+      <span class="food-tag">🍝 Pasta</span>
+      <span class="food-tag">🥗 Salads</span>
+      <span class="food-tag">🍰 Desserts</span>
+      <span class="food-tag">☕ Drinks</span>
+    </div>
+  </div>
+
+  <div class="auth-form">
+    <div class="brand">AY<span> Foods</span></div>
+    <div class="auth-subtitle">Sign in to continue</div>
+
+    {% if error %}
+      <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <div class="role-selector">
+      <div class="role-btn selected" id="userBtn" onclick="selectRole('user')">
+        <div class="role-icon">🛍️</div>
+        <div class="role-label">Customer</div>
+        <div class="role-desc">Browse &amp; order food</div>
+      </div>
+      <div class="role-btn admin-btn" id="adminBtn" onclick="selectRole('admin')">
+        <div class="role-icon">⚙️</div>
+        <div class="role-label">Admin</div>
+        <div class="role-desc">Manage orders &amp; menu</div>
+      </div>
+    </div>
+
+    <form method="POST" id="loginForm">
+      <input type="hidden" name="role" id="roleInput" value="user">
+      <div class="form-group">
+        <label>Username</label>
+        <input class="form-control" type="text" name="username" id="usernameInput"
+               placeholder="Enter username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" type="password" name="password"
+               placeholder="Enter password" required>
+      </div>
+      <button class="btn-submit" type="submit" id="submitBtn">
+        <span id="submitIcon">🛍️</span>
+        <span id="submitText">Sign in as Customer</span>
+      </button>
+    </form>
+
+    <div class="auth-switch">
+      Don't have an account? <a href="/register">Create one</a>
+    </div>
+
+    <div class="demo-box">
+      <strong>🔑 Demo Credentials</strong>
+      Admin &nbsp;— <code>admin / admin@123</code><br>
+      Customer — <code>user / user@123</code>
+    </div>
+  </div>
+</div>
+
+<script>
+  function selectRole(role) {
+    document.getElementById('roleInput').value = role;
+    const userBtn   = document.getElementById('userBtn');
+    const adminBtn  = document.getElementById('adminBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitIcon = document.getElementById('submitIcon');
+    const submitText = document.getElementById('submitText');
+    const usernameInput = document.getElementById('usernameInput');
+
+    if (role === 'admin') {
+      userBtn.classList.remove('selected');
+      adminBtn.classList.add('selected');
+      submitBtn.classList.add('admin-mode');
+      submitIcon.textContent = '⚙️';
+      submitText.textContent = 'Sign in as Admin';
+      usernameInput.placeholder = 'Admin username';
+    } else {
+      adminBtn.classList.remove('selected');
+      userBtn.classList.add('selected');
+      submitBtn.classList.remove('admin-mode');
+      submitIcon.textContent = '🛍️';
+      submitText.textContent = 'Sign in as Customer';
+      usernameInput.placeholder = 'Enter username';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders — AY Foods{% endblock %}
+{% block head %}
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold); }
+  .page-header p { color: var(--muted); margin-top: .25rem; }
+
+  .order-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .order-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .order-id { font-weight: 700; font-size: 1.05rem; }
+  .order-meta { color: var(--muted); font-size: .85rem; margin-top: .2rem; }
+  .order-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  @media (max-width: 560px) { .order-body { grid-template-columns: 1fr; } }
+  .order-detail-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+  .order-items-list { font-size: .9rem; }
+  .order-item-row { display: flex; justify-content: space-between; padding: .3rem 0; }
+  .order-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .order-total { font-weight: 700; color: var(--gold); font-size: 1.05rem; }
+  .status-select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: .45rem .85rem;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: .88rem; cursor: pointer;
+  }
+  .status-select:focus { outline: none; border-color: var(--gold); }
+  .update-btn {
+    background: var(--gold); color: #000; border: none;
+    border-radius: 8px; padding: .45rem 1.1rem;
+    font-weight: 700; font-size: .88rem;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all .2s;
+  }
+  .update-btn:hover { background: var(--gold2); }
+
+  .status-badge { display: inline-block; padding: .2rem .7rem; border-radius: 12px; font-size: .8rem; font-weight: 600; }
+  .status-Placed    { background: rgba(232,160,69,.15); color: var(--gold); }
+  .status-Preparing { background: rgba(62,124,207,.15); color: #5b9cf6; }
+  .status-On\ Way   { background: rgba(232,160,69,.15); color: var(--gold); }
+  .status-Delivered { background: rgba(62,207,142,.15); color: var(--green); }
+  .status-Cancelled { background: rgba(232,69,69,.15);  color: var(--red); }
+
+  .empty-state { text-align: center; padding: 4rem; color: var(--muted); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1>Manage Orders</h1>
+    <p>{{ orders|length }} total orders</p>
+  </div>
+
+  {% if orders %}
+    {% for order in orders %}
+    <div class="order-card" id="card-{{ order.id }}">
+      <div class="order-header">
+        <div>
+          <div class="order-id">Order #{{ order.id }} — {{ order.name }}</div>
+          <div class="order-meta">📅 {{ order.created_at }} &nbsp;|&nbsp; 💳 {{ order.payment }} &nbsp;|&nbsp; 📞 {{ order.phone }}</div>
+        </div>
+        <span class="status-badge status-{{ order.status }}" id="badge-{{ order.id }}">{{ order.status }}</span>
+      </div>
+
+      <div class="order-body">
+        <div>
+          <div class="order-detail-label">Items Ordered</div>
+          <div class="order-items-list">
+            {% for item in order.order_items %}
+            <div class="order-item-row">
+              <span>{{ item.emoji }} {{ item.name }} ×{{ item.qty }}</span>
+              <span style="color:var(--gold)">₹{{ item.price * item.qty }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <div class="order-detail-label">Delivery Address</div>
+          <div style="font-size:.9rem">{{ order.address }}</div>
+        </div>
+      </div>
+
+      <div class="order-footer">
+        <div class="order-total">Total: ₹{{ order.total + 49 }}</div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <select class="status-select" id="status-{{ order.id }}">
+            {% for s in ['Placed','Preparing','On Way','Delivered','Cancelled'] %}
+            <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <button class="update-btn" onclick="updateStatus({{ order.id }})">Update</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:3rem;margin-bottom:1rem">📦</div>
+    <p>No orders yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  async function updateStatus(id) {
+    const status = document.getElementById('status-' + id).value;
+    const res = await fetch('/admin/orders/update', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id, status})
+    });
+    const data = await res.json();
+    if (data.success) {
+      const badge = document.getElementById('badge-' + id);
+      badge.textContent = status;
+      badge.className = 'status-badge status-' + status;
+      showToast('Order #' + id + ' updated to ' + status);
+    }
+  }
+</script>
+{% endblock %}

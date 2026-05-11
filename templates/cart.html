@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Cart — AY Foods{% endblock %}
+
+{% block head %}
+<style>
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 860px) { .cart-layout { grid-template-columns: 1fr; } }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; font-weight: 900;
+    color: var(--gold); margin-bottom: 1.5rem;
+  }
+
+  /* Cart items */
+  .cart-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    margin-bottom: .85rem;
+    transition: border-color .2s;
+  }
+  .cart-item:hover { border-color: var(--gold); }
+  .item-emoji-big { font-size: 2.2rem; flex-shrink: 0; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-weight: 700; margin-bottom: .2rem; }
+  .cart-item-price { color: var(--gold); font-weight: 600; font-size: .95rem; }
+  .qty-controls {
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .qty-btn {
+    width: 30px; height: 30px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-size: 1rem; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .qty-num { font-weight: 700; min-width: 24px; text-align: center; }
+  .remove-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 1.2rem; padding: .25rem;
+    transition: color .2s;
+  }
+  .remove-btn:hover { color: var(--red); }
+
+  /* Summary card */
+  .summary-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.75rem;
+    position: sticky; top: 80px;
+  }
+  .summary-card h3 {
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem;
+    padding-bottom: .75rem; border-bottom: 1px solid var(--border);
+  }
+  .summary-row {
+    display: flex; justify-content: space-between;
+    font-size: .9rem; color: var(--muted); margin-bottom: .6rem;
+  }
+  .summary-total {
+    display: flex; justify-content: space-between;
+    font-weight: 700; font-size: 1.1rem;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+    padding-top: .85rem; margin-top: .25rem;
+  }
+  .summary-total span:last-child { color: var(--gold); }
+
+  /* Checkout form */
+  .checkout-section { margin-top: 1.5rem; }
+  .checkout-section h4 { font-size: .9rem; color: var(--muted); margin-bottom: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+
+  .empty-cart {
+    text-align: center; padding: 5rem 2rem; color: var(--muted);
+  }
+  .empty-cart .big-emoji { font-size: 4rem; margin-bottom: 1rem; }
+  .empty-cart h2 { font-size: 1.4rem; color: var(--text); margin-bottom: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% if cart %}
+  <div class="cart-layout">
+    <!-- Left: Cart items -->
+    <div>
+      <h1 class="section-title">Your Cart</h1>
+      <div id="cartItems">
+        {% for item in cart %}
+        <div class="cart-item" id="item-{{ item.id }}">
+          <div class="item-emoji-big">{{ item.emoji }}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">{{ item.name }}</div>
+            <div class="cart-item-price">₹{{ item.price }} × <span class="qty-display-{{ item.id }}">{{ item.qty }}</span></div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty({{ item.id }}, -1)">−</button>
+            <span class="qty-num qty-display-{{ item.id }}">{{ item.qty }}</span>
+            <button class="qty-btn" onclick="changeQty({{ item.id }}, 1)">+</button>
+          </div>
+          <button class="remove-btn" onclick="removeItem({{ item.id }})" title="Remove">✕</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right: Order summary + checkout -->
+    <div>
+      <div class="summary-card">
+        <h3>Order Summary</h3>
+        <div id="summaryRows">
+          {% for item in cart %}
+          <div class="summary-row" id="summary-{{ item.id }}">
+            <span>{{ item.name }} ×{{ item.qty }}</span>
+            <span>₹{{ item.price * item.qty }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="summary-row">
+          <span>Delivery fee</span><span>₹49</span>
+        </div>
+        <div class="summary-total">
+          <span>Total</span>
+          <span id="totalDisplay">₹{{ total + 49 }}</span>
+        </div>
+
+        <form method="POST" action="/checkout" class="checkout-section">
+          <h4>Delivery Details</h4>
+          <div class="form-group">
+            <label>Delivery Address</label>
+            <textarea class="form-control" name="address" rows="2" placeholder="Enter your address" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input class="form-control" type="tel" name="phone" placeholder="+91 XXXXX XXXXX" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select class="form-control" name="payment">
+              <option value="COD">Cash on Delivery</option>
+              <option value="UPI">UPI</option>
+              <option value="Card">Credit / Debit Card</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full mt-2">Place Order →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <div class="big-emoji">🛒</div>
+    <h2>Your cart is empty</h2>
+    <p>Add some delicious items from the menu!</p>
+    <a href="/menu" class="btn btn-primary mt-3">Browse Menu</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let cartData = {{ cart | tojson }};
+
+  async function changeQty(id, delta) {
+    const item = cartData.find(i => i.id === id);
+    if (!item) return;
+    const newQty = item.qty + delta;
+    if (newQty < 1) { removeItem(id); return; }
+    item.qty = newQty;
+    document.querySelectorAll('.qty-display-' + id).forEach(el => el.textContent = newQty);
+    await fetch('/cart/update', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id, qty: newQty})
+    });
+    updateSummary(id, item.price, newQty);
+    recalcTotal();
+  }
+
+  async function removeItem(id) {
+    const el = document.getElementById('item-' + id);
+    if (el) { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = '.3s'; setTimeout(() => el.remove(), 300); }
+    const sumEl = document.getElementById('summary-' + id);
+    if (sumEl) sumEl.remove();
+    cartData = cartData.filter(i => i.id !== id);
+    await fetch('/cart/remove', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+    recalcTotal();
+    if (!cartData.length) setTimeout(() => location.reload(), 400);
+  }
+
+  function updateSummary(id, price, qty) {
+    const el = document.getElementById('summary-' + id);
+    const item = cartData.find(i => i.id === id);
+    if (el && item) el.innerHTML = `<span>${item.name} ×${qty}</span><span>₹${price * qty}</span>`;
+  }
+
+  function recalcTotal() {
+    const subtotal = cartData.reduce((s, i) => s + i.price * i.qty, 0);
+    document.getElementById('totalDisplay').textContent = '₹' + (subtotal + 49);
+  }
+</script>
+{% endblock %}

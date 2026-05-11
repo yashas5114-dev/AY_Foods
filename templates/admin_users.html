@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Users — AY Foods{% endblock %}
+{% block head %}
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold); }
+  .page-header p { color: var(--muted); margin-top: .25rem; }
+  .users-table { width: 100%; border-collapse: collapse; }
+  .users-table th { text-align: left; padding: .75rem 1rem; color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+  .users-table td { padding: .9rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .users-table tr:last-child td { border-bottom: none; }
+  .users-table tr:hover td { background: rgba(255,255,255,.02); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold); color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .9rem;
+  }
+  .role-admin { background: rgba(232,160,69,.15); color: var(--gold); padding: .2rem .65rem; border-radius: 12px; font-size: .78rem; font-weight: 600; }
+  .role-user  { background: rgba(62,207,142,.15); color: var(--green); padding: .2rem .65rem; border-radius: 12px; font-size: .78rem; font-weight: 600; }
+  @media (max-width: 560px) { .users-table th:nth-child(1), .users-table td:nth-child(1) { display: none; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1>Users</h1>
+    <p>{{ users|length }} registered accounts</p>
+  </div>
+  <div class="card">
+    <div style="overflow-x:auto">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Avatar</th><th>Name</th><th>Username</th><th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td><div class="avatar">{{ user.name[0].upper() }}</div></td>
+            <td style="font-weight:600">{{ user.name }}</td>
+            <td style="color:var(--muted)">@{{ user.username }}</td>
+            <td><span class="role-{{ user.role }}">{{ user.role.title() }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Manage Menu — AY Foods{% endblock %}
+{% block head %}
+<style>
+  .page-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold); }
+
+  /* Add item form */
+  .add-form-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 2rem; }
+  .add-form-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .form-grid .form-group { margin-bottom: 0; }
+  .form-actions { margin-top: 1.25rem; display: flex; gap: .75rem; }
+
+  /* Menu grid */
+  .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.1rem; }
+  .menu-item-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    display: flex; flex-direction: column;
+  }
+  .item-top { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: .75rem; }
+  .item-emoji { font-size: 2rem; }
+  .item-cat { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .item-name { font-weight: 700; }
+  .item-desc-sm { font-size: .82rem; color: var(--muted); flex: 1; }
+  .item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .item-price { font-weight: 700; color: var(--gold); }
+  .delete-btn {
+    background: rgba(232,69,69,.1); color: var(--red);
+    border: 1px solid rgba(232,69,69,.2);
+    border-radius: 8px; padding: .35rem .8rem;
+    font-size: .82rem; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all .2s;
+  }
+  .delete-btn:hover { background: var(--red); color: #fff; }
+
+  .filter-bar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem; }
+  .filter-btn { padding: .4rem 1rem; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-size: .85rem; cursor: pointer; transition: all .2s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--gold); border-color: var(--gold); color: #000; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Manage Menu</h1>
+      <p style="color:var(--muted);margin-top:.25rem">{{ menu|length }} items across {{ categories|length }} categories</p>
+    </div>
+  </div>
+
+  <!-- Add new item -->
+  <div class="add-form-card">
+    <h3>➕ Add New Menu Item</h3>
+    <form method="POST" action="/admin/menu/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Item Name</label>
+          <input class="form-control" type="text" name="name" placeholder="e.g. Garlic Bread" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input class="form-control" type="text" name="category" placeholder="e.g. Sides" required>
+        </div>
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input class="form-control" type="number" name="price" placeholder="e.g. 149" required>
+        </div>
+        <div class="form-group">
+          <label>Emoji</label>
+          <input class="form-control" type="text" name="emoji" placeholder="🍞" maxlength="2">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1">
+          <label>Description</label>
+          <input class="form-control" type="text" name="desc" placeholder="Short description">
+        </div>
+      </div>
+      <div class="form-actions">
+        <label style="display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.9rem;cursor:pointer">
+          <input type="checkbox" name="popular"> Mark as Popular
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm">Add Item</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-cat="all">All</button>
+    {% for cat in categories %}
+    <button class="filter-btn" data-cat="{{ cat }}">{{ cat }}</button>
+    {% endfor %}
+  </div>
+
+  <!-- Grid -->
+  <div class="menu-grid">
+    {% for item in menu %}
+    <div class="menu-item-card" data-cat="{{ item.category }}">
+      <div class="item-top">
+        <div class="item-emoji">{{ item.emoji }}</div>
+        <div>
+          <div class="item-cat">{{ item.category }}{% if item.popular %} · ⭐{% endif %}</div>
+          <div class="item-name">{{ item.name }}</div>
+        </div>
+      </div>
+      <div class="item-desc-sm">{{ item.desc }}</div>
+      <div class="item-footer">
+        <div class="item-price">₹{{ item.price }}</div>
+        <button class="delete-btn" onclick="deleteItem({{ item.id }}, this)">Delete</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.menu-item-card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+
+  async function deleteItem(id, btn) {
+    if (!confirm('Delete this item?')) return;
+    const res = await fetch('/admin/menu/delete/' + id, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      btn.closest('.menu-item-card').remove();
+      showToast('Item deleted');
+    }
+  }
+</script>
+{% endblock %}
